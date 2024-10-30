@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+#parametros
+m = 0.5
+l = 0.30
+kf = 0.0
+g = 9.81
+
+h = 1e-3 #paso
+Tfin = 20  
+N = int(Tfin / h)  
+
+# DN=derivacion numerica
+
+t = np.zeros(N)
+X1 = np.zeros(N)  # desp
+X2 = np.zeros(N)  # vel ang
+X2_numerical = np.zeros(N)  # acele DN
+X2_eq = np.zeros(N)  # acele eq
+
+# CI
+X1[0] = np.pi / 4  
+X2[0] = 0  
+
+# con equacion 
+for k in range(N - 1):
+    t[k + 1] = t[k] + h
+    X1[k + 1] = X1[k] + h * X2[k]
+    X2_eq[k + 1] = -(g / l) * np.sin(X1[k + 1]) - (kf / m) * X2[k]
+    X2[k + 1] = X2[k] + h * X2_eq[k + 1]
+
+# derivacion numerica por diferencia central (best)
+for k in range(1, N - 1):  #inicio de 1 por tamaños
+    X2_numerical[k] = (X2[k + 1] - X2[k - 1]) / (2 * h)
+
+# MSE 
+MSE = np.mean((X2_eq[1:N-1] - X2_numerical[1:N-1]) ** 2)
+print(f"MSE entre sol DN y por eq: {MSE}")
+
+# resultados
+plt.figure()
+plt.plot(t, X2_eq, label='Aceleracion EQ',  color='red')
+plt.plot(t, X2_numerical, label='Aceleracion DN', linestyle='dashed', color='green')
+plt.xlabel('Tiempo[s]')
+plt.ylabel('Posicion')
+plt.legend()
+plt.show()
